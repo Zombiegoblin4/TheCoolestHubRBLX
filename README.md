@@ -1,2 +1,4 @@
-# TheCoolestHubRBLX
-A Cool Roblox Script Hub 😎
+# **The Coolest Hub!**
+##### *For exploiters by exploiters*
+
+## COMMING SOON!!!
