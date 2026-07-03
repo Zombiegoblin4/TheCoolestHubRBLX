@@ -124,7 +124,10 @@ local function Create(class, props, parent)
     local inst = Instance.new(class)
     for k, v in pairs(props or {}) do
         if k ~= "Parent" then
-            inst[k] = v
+            local ok, err = pcall(function() inst[k] = v end)
+            if not ok and k ~= "ClipsDescendants" then
+                warn("TheCoolestHub: Failed to set " .. tostring(k) .. " on " .. class .. ": " .. tostring(err))
+            end
         end
     end
     if parent then
@@ -232,8 +235,8 @@ function TheCoolestHub:CreateWindow(config)
         Size = windowSize,
         Position = UDim2.new(0.5, -windowSize.X.Offset / 2, 0.5, -windowSize.Y.Offset / 2),
         BorderSizePixel = 0,
-        ClipDescendants = true,
     }, ScreenGui)
+    WindowFrame.ClipsDescendants = true
     AddCorner(WindowFrame, 10)
     AddStroke(WindowFrame, Theme.Border, 1)
 
