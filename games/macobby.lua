@@ -29,21 +29,46 @@ Section:Button({
         local char = player.Character or player.CharacterAdded:Wait()
         local hrp = char:WaitForChild("HumanoidRootPart")
 
-        local folder = workspace:WaitForChild("Checkpoints")
+        local checkpointsFolder = workspace:WaitForChild("Checkpoints")
+
+        -- Alle TeleportParts folders
+        local tpFolders = {}
+        if workspace:FindFirstChild("TeleportParts") then
+            tpFolders = workspace.TeleportParts:GetChildren()
+        end
 
         for i = 1, 41 do
-            local cp = folder:FindFirstChild("Checkpoint " .. i)
-            if not cp then
-                warn("Checkpoint " .. i .. " niet gevonden.")
-                continue
-            end
+            local targetPart = nil
 
-            local success = false
-            local attempts = 0
+            ----------------------------------------------------
+            -- SPECIAL CASE: Checkpoint 37 → TeleportPart8
+            ----------------------------------------------------
+            if i == 37 then
+                local tpName = "TeleportPart8"
 
-            repeat
-                attempts += 1
-                local targetPart
+                -- Zoek TeleportPart8 in ALLE TeleportParts folders
+                for _, folder in ipairs(tpFolders) do
+                    local found = folder:FindFirstChild(tpName)
+                    if found then
+                        targetPart = found
+                        break
+                    end
+                end
+
+                if not targetPart then
+                    warn("TeleportPart8 niet gevonden in TeleportParts folders.")
+                    continue
+                end
+
+            ----------------------------------------------------
+            -- NORMAAL: Checkpoints 1–41 → workspace.Checkpoints
+            ----------------------------------------------------
+            else
+                local cp = checkpointsFolder:FindFirstChild("Checkpoint " .. i)
+                if not cp then
+                    warn("Checkpoint " .. i .. " niet gevonden.")
+                    continue
+                end
 
                 if cp:IsA("Model") then
                     targetPart = cp.PrimaryPart or cp:FindFirstChildWhichIsA("BasePart")
@@ -51,15 +76,30 @@ Section:Button({
                     targetPart = cp
                 end
 
-                if targetPart then
+                if not targetPart then
+                    warn("Checkpoint " .. i .. " heeft geen BasePart.")
+                    continue
+                end
+            end
+
+            ----------------------------------------------------
+            -- TELEPORT LOGIC
+            ----------------------------------------------------
+            local success = false
+            local attempts = 0
+
+            repeat
+                attempts += 1
+
+                if targetPart:IsA("BasePart") then
                     hrp.CFrame = targetPart.CFrame + Vector3.new(0, 2, 0)
                     success = true
                 else
-                    warn("Checkpoint " .. cp.Name .. " heeft geen BasePart, poging " .. attempts)
+                    warn("TeleportPart voor " .. i .. " is geen BasePart, poging " .. attempts)
                 end
 
                 task.wait(0.2)
-            until success or attempts >= 10  -- tries up to 10 times per checkpoint
+            until success or attempts >= 10
         end
 
         Window:Notify({
