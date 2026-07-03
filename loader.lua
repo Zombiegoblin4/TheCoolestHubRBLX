@@ -42,7 +42,7 @@ elseif placeId == 107645101488133 or universeId == 107645101488133 then
         "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/needohtowerW1.lua"
     )
 
-elseif placeId == 107645101488133 or universeId == 107645101488133 then
+elseif placeId == 92728557730774 or universeId == 92728557730774 then
     loadGame(
         "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/games/phonkyphonkclicker1.lua",
         "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/ithinkphonkissmth1.lua"
