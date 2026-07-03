@@ -31,34 +31,36 @@ Section:Button({
 
         local checkpointsFolder = workspace:WaitForChild("Checkpoints")
 
-        -- Alle TeleportParts folders
-        local tpFolders = {}
-        if workspace:FindFirstChild("TeleportParts") then
-            tpFolders = workspace.TeleportParts:GetChildren()
+        --------------------------------------------------------------------
+        -- Maak PartyTpLOLZ (eenmalig, of gebruik bestaande)
+        --------------------------------------------------------------------
+        local partyPart = workspace:FindFirstChild("PartyTpLOLZ")
+        if not partyPart then
+            partyPart = Instance.new("Part")
+            partyPart.Name = "PartyTpLOLZ"
+            partyPart.Size = Vector3.new(0.9824609756469727, 9.059999465942383, 6.266468524932861)
+            partyPart.CFrame = CFrame.new(
+                -50.533123, 63.970047, -687.191406,
+                0, 0, 1,
+                0, 1, 0,
+                -1, 0, 0
+            )
+            partyPart.Anchored = true
+            partyPart.CanCollide = true
+            partyPart.Parent = workspace
         end
 
+        --------------------------------------------------------------------
+        -- Loop door checkpoints
+        --------------------------------------------------------------------
         for i = 1, 41 do
             local targetPart = nil
 
             ----------------------------------------------------
-            -- SPECIAL CASE: Checkpoint 37 → TeleportPart8
+            -- SPECIAL CASE: Checkpoint 37 → PartyTpLOLZ
             ----------------------------------------------------
             if i == 37 then
-                local tpName = "TeleportPart8"
-
-                -- Zoek TeleportPart8 in ALLE TeleportParts folders
-                for _, folder in ipairs(tpFolders) do
-                    local found = folder:FindFirstChild(tpName)
-                    if found then
-                        targetPart = found
-                        break
-                    end
-                end
-
-                if not targetPart then
-                    warn("TeleportPart8 niet gevonden in TeleportParts folders.")
-                    continue
-                end
+                targetPart = partyPart
 
             ----------------------------------------------------
             -- NORMAAL: Checkpoints 1–41 → workspace.Checkpoints
@@ -92,7 +94,7 @@ Section:Button({
                 attempts += 1
 
                 if targetPart:IsA("BasePart") then
-                    hrp.CFrame = targetPart.CFrame + Vector3.new(0, 2, 0)
+                    hrp.CFrame = targetPart.CFrame + Vector3.new(0, 3, 0)
                     success = true
                 else
                     warn("TeleportPart voor " .. i .. " is geen BasePart, poging " .. attempts)
@@ -100,6 +102,13 @@ Section:Button({
 
                 task.wait(0.2)
             until success or attempts >= 10
+
+            ----------------------------------------------------
+            -- SPECIAL WAIT AFTER TELEPORT (Checkpoint 37)
+            ----------------------------------------------------
+            if i == 37 then
+                task.wait(5)
+            end
         end
 
         Window:Notify({
