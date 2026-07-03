@@ -385,12 +385,78 @@ function TheCoolestHub:CreateWindow(config)
         end
     end)
 
-    -- Close
-    CloseBtn.MouseButton1Click:Connect(function()
+    -- Window visibility state
+    local isWindowOpen = true
+    local ToggleBtn -- forward declare for closure access
+
+    -- Circular toggle button (top-right of screen, always visible)
+    ToggleBtn = Create("ImageButton", {
+        Name = "TCH_Toggle",
+        BackgroundColor3 = accentColor,
+        BackgroundTransparency = 0.3,
+        Size = UDim2.new(0, 44, 0, 44),
+        Position = UDim2.new(1, -58, 0, 14),
+        AnchorPoint = Vector2.new(0, 0),
+        BorderSizePixel = 0,
+        ZIndex = 200,
+        Image = "rbxassetid://3926305904",
+        ImageColor3 = Color3.fromRGB(255, 255, 255),
+        ImageTransparency = 0,
+        ScaleType = Enum.ScaleType.Fit,
+    }, ScreenGui)
+    AddCorner(ToggleBtn, 22)
+
+    local ToggleGlow = Instance.new("UIStroke")
+    ToggleGlow.Color = accentColor
+    ToggleGlow.Thickness = 2
+    ToggleGlow.Transparency = 0.3
+    ToggleGlow.Parent = ToggleBtn
+
+    local ToggleLabel = Create("TextLabel", {
+        Text = "",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 16,
+        Font = Enum.Font.GothamBold,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        ZIndex = 201,
+    }, ToggleBtn)
+
+    local function hideWindow()
+        isWindowOpen = false
         Tween(WindowFrame, { Size = UDim2.new(0, 0, 0, 0) }, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        task.delay(0.35, function()
-            ScreenGui:Destroy()
-        end)
+        ToggleLabel.Text = windowName:sub(1, 1)
+        Tween(ToggleBtn, { BackgroundTransparency = 0 }, 0.25)
+        pcall(function() ToggleBtn.ImageTransparency = 1 end)
+    end
+
+    local function showWindow()
+        isWindowOpen = true
+        WindowFrame.Size = UDim2.new(0, 0, 0, 0)
+        Tween(WindowFrame, { Size = windowSize }, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        ToggleLabel.Text = ""
+        Tween(ToggleBtn, { BackgroundTransparency = 0.3 }, 0.25)
+        pcall(function() ToggleBtn.ImageTransparency = 0 end)
+    end
+
+    -- Close (hides window, toggle button stays)
+    CloseBtn.MouseButton1Click:Connect(hideWindow)
+
+    ToggleBtn.MouseEnter:Connect(function()
+        Tween(ToggleBtn, { BackgroundTransparency = 0 }, 0.2)
+    end)
+    ToggleBtn.MouseLeave:Connect(function()
+        if isWindowOpen then
+            Tween(ToggleBtn, { BackgroundTransparency = 0.3 }, 0.2)
+        end
+    end)
+
+    ToggleBtn.MouseButton1Click:Connect(function()
+        if isWindowOpen then
+            hideWindow()
+        else
+            showWindow()
+        end
     end)
 
     -- Window State
@@ -484,7 +550,7 @@ function TheCoolestHub:CreateWindow(config)
             end
         end)
 
-        TabButton.MouseButton1Click:Connect(function()
+        local function selectTab()
             for _, tab in pairs(self.tabs) do
                 Tween(tab.button, { BackgroundColor3 = Theme.Tab, TextColor3 = Theme.TextSecondary }, 0.25)
                 tab.indicator.Visible = false
@@ -494,7 +560,9 @@ function TheCoolestHub:CreateWindow(config)
             TabIndicator.Visible = true
             TabContent.Visible = true
             self.currentTab = TabContent
-        end)
+        end
+
+        TabButton.MouseButton1Click:Connect(selectTab)
 
         local tabData = {
             button = TabButton,
@@ -509,7 +577,7 @@ function TheCoolestHub:CreateWindow(config)
 
         -- Auto-select first tab
         if #self.tabs == 1 then
-            TabButton.MouseButton1Click:Fire()
+            selectTab()
         end
 
         -- ============================================================
