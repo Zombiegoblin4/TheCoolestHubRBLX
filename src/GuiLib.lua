@@ -590,6 +590,7 @@ function TheCoolestHub:CreateWindow(config)
                 Name = "Section_" .. sectionName,
                 BackgroundColor3 = Theme.Section,
                 Size = UDim2.new(1, 0, 0, 28),
+                AutomaticSize = Enum.AutomaticSize.Y,
                 BorderSizePixel = 0,
                 LayoutOrder = self.sectionCount * 100,
             }, self.scroll)
