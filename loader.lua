@@ -1,25 +1,57 @@
--- 1: 72165087146441
+-- Game + Platform Detection
 local placeId = game.PlaceId
 local universeId = game.GameId
 
-local UserInputService = game:GetService("UserInputService")
-local isPC = UserInputService.KeyboardEnabled
-local isMobile = UserInputService.TouchEnabled
+local UIS = game:GetService("UserInputService")
+local isPC = UIS.KeyboardEnabled
+local isMobile = UIS.TouchEnabled
 
+-- Helper: load correct script
+local function loadGame(pcURL, mobileURL)
+    if isPC then
+        loadstring(game:HttpGet(pcURL))()
+    elseif isMobile then
+        loadstring(game:HttpGet(mobileURL))()
+    else
+        loadstring(game:HttpGet(pcURL))() -- fallback
+    end
+end
+
+-- GAME ROUTER
 if placeId == 72165087146441 or universeId == 72165087146441 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/Easy-Fun-Obby-575-Stages.lua"))()
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/Easy-Fun-Obby-575-Stages.lua",
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/mobileGames/Easy-Fun-Obby-575-Stages.lua"
+    )
+
 elseif placeId == 17732590459 or universeId == 17732590459 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/macobby.lua"))()
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/macobby.lua",
+        "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/macobby1.lua"
+    )
+
 elseif placeId == 3571215756 or universeId == 3571215756 then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/housetycoon1.lua"))()
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/housetycoon1.lua",
+        "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/housetycoon1.lua"
+    )
+
 elseif placeId == 107645101488133 or universeId == 107645101488133 then
-    loadstring(game:HttpGet("https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/games/needohTowerW1.lua"))()
+    loadGame(
+        "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/games/needohTowerW1.lua",
+        "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/needohtowerW1.lua"
+    )
+
 else
-    -- Unsupported Game GUI (PC/Mobile versie)
+    --------------------------------------------------------------------
+    -- Unsupported Game GUI (PC/Mobile)
+    --------------------------------------------------------------------
+    local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
     local gui = Instance.new("ScreenGui")
     gui.Name = "UnsupportedGameUI"
     gui.ResetOnSpawn = false
-    gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    gui.Parent = playerGui
 
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 300, 0, 150)
@@ -31,6 +63,7 @@ else
     local title = Instance.new("TextLabel")
     title.Size = UDim2.new(1, 0, 0, 40)
     title.BackgroundTransparency = 1
+    title.Text = "Unsupported Game"
     title.TextColor3 = Color3.fromRGB(255, 80, 80)
     title.TextScaled = true
     title.Font = Enum.Font.GothamBold
@@ -40,22 +73,11 @@ else
     desc.Size = UDim2.new(1, -20, 0, 50)
     desc.Position = UDim2.new(0, 10, 0, 45)
     desc.BackgroundTransparency = 1
+    desc.Text = "This game is not supported by TheCoolest Hub."
     desc.TextColor3 = Color3.fromRGB(220, 220, 220)
     desc.TextScaled = true
     desc.Font = Enum.Font.Gotham
     desc.Parent = frame
-
-    -- PC/Mobile tekst
-    if isPC then
-        title.Text = "Unsupported Game"
-        desc.Text = "This game is not supported by TheCoolest Hub."
-    elseif isMobile then
-        title.Text = "Unsupported Game"
-        desc.Text = "This game is not supported by TheCoolest Hub."
-    else
-        title.Text = "Unsupported Game"
-        desc.Text = "This game is not supported by TheCoolest Hub."
-    end
 
     local ok = Instance.new("TextButton")
     ok.Size = UDim2.new(0, 120, 0, 35)
