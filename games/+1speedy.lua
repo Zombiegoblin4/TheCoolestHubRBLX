@@ -1,0 +1,165 @@
+-- TheCoolest Hub (georganiseerd)
+local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
+
+local Window = MacLib:Window({
+    Title = "TheCoolest Hub!",
+    Subtitle = "Ready to kill this stupid brainrot game 😎",
+    Size = UDim2.fromOffset(868, 650),
+    Keybind = Enum.KeyCode.LeftControl,
+    AcrylicBlur = true,
+})
+
+local TabGroup = Window:TabGroup()
+
+---------------------------------------------------------------------
+-- ⭐ TAB: AUTOMATION
+---------------------------------------------------------------------
+local TabAutomation = TabGroup:Tab({
+    Name = "Automation",
+    Image = "rbxassetid://8150337452"
+})
+
+---------------------------------------------------------------------
+-- ⭐ SECTION: WINS
+---------------------------------------------------------------------
+local SectionWins = TabAutomation:Section({
+    Side = "Left"
+})
+
+---------------------------------------------------------------------
+-- ⭐ TELEPORT PATHS (MULTI-STEP)
+---------------------------------------------------------------------
+local TeleportPaths = {
+    ["+1 Wins"] = {
+        CFrame.new(0.448354244, 8.9534626, 66.9333267),
+        CFrame.new(-16.4241066, 8.95346165, 281.383453)
+    },
+
+    ["+3 Wins"] = {
+        CFrame.new(0.448354244, 8.9534626, 66.9333267), -- stap 1 (zelfde als +1)
+        CFrame.new(-2.4241066, 8.95346165, 294.383453), -- stap 2
+        CFrame.new(62.2836075, 8.95346165, 424.541962), -- stap 3
+        CFrame.new(-16.9603615, 8.95346069, 506.055542) -- stap 4
+    },
+
+    ["+10 Wins"] = {
+        CFrame.new(0.448354244, 8.9534626, 66.9333267, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 1 (zelfde als +1)
+        CFrame.new(-2.4241066, 8.95346165, 294.383453, 1, 0, 0, 0, 1, 0, 0, 0, 1), -- stap 3
+        CFrame.new(62.2836075, 8.95346165, 424.541962, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 2
+        CFrame.new(4.03963852, 8.95346069, 506.055542, 1, 0, 0, 0, 1, 0, 0, 0, 1),     -- stap 3
+        CFrame.new(20.200552, 8.9534626, 563.247253, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 4
+        CFrame.new(18.7471104, 77.2423477, 745.637268, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 5
+        CFrame.new(-15.9055004, 77.2423477, 773.520691, 1, 0, 0, 0, 1, 0, 0, 0, 1) -- stap 6!
+    },
+    
+    ["+20 Wins"] = {
+        CFrame.new(0.448354244, 8.9534626, 66.9333267, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 1 (zelfde als +1)
+        CFrame.new(-2.4241066, 8.95346165, 294.383453, 1, 0, 0, 0, 1, 0, 0, 0, 1), -- stap 3
+        CFrame.new(62.2836075, 8.95346165, 424.541962, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 2
+        CFrame.new(4.03963852, 8.95346069, 506.055542, 1, 0, 0, 0, 1, 0, 0, 0, 1),     -- stap 3
+        CFrame.new(20.200552, 8.9534626, 563.247253, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 4
+        CFrame.new(18.7471104, 77.2423477, 745.637268, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 5
+        CFrame.new(-0.702917993, 77.2423477, 780.10553, 1, 0, 0, 0, 1, 0, 0, 0, 1), -- stap 6
+        CFrame.new(2.03941607, 76.1579056, 874.557312, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(12.8119507, 76.1418381, 927.611206, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(55.7196579, 77.237236, 936.754089, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(101.35228, 77.1432037, 940.840149, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(102.300911, 76.6698837, 1003.48895, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(50.4059677, 79.0943832, 1002.68396, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(2.94973636, 78.2667389, 1006.54535, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(0.600398004, 78.3115463, 1057.80042, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(-13.8807974, 77.242363, 1108.8833, 1, 0, 0, 0, 1, 0, 0, 0, 1) -- last!
+    },
+    -- 1.74295521, 77.242363, 1375.38599, 1, 0, 0, 0, 1, 0, 0, 0, 1
+    ["+50 Wins"] = {
+        CFrame.new(0.448354244, 8.9534626, 66.9333267, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 1 (zelfde als +1)
+        CFrame.new(-2.4241066, 8.95346165, 294.383453, 1, 0, 0, 0, 1, 0, 0, 0, 1), -- stap 3
+        CFrame.new(62.2836075, 8.95346165, 424.541962, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 2
+        CFrame.new(4.03963852, 8.95346069, 506.055542, 1, 0, 0, 0, 1, 0, 0, 0, 1),     -- stap 3
+        CFrame.new(20.200552, 8.9534626, 563.247253, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 4
+        CFrame.new(18.7471104, 77.2423477, 745.637268, 1, 0, 0, 0, 1, 0, 0, 0, 1),   -- stap 5
+        CFrame.new(-0.702917993, 77.2423477, 780.10553, 1, 0, 0, 0, 1, 0, 0, 0, 1), -- stap 6
+        CFrame.new(2.03941607, 76.1579056, 874.557312, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(12.8119507, 76.1418381, 927.611206, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(55.7196579, 77.237236, 936.754089, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(101.35228, 77.1432037, 940.840149, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(102.300911, 76.6698837, 1003.48895, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(50.4059677, 79.0943832, 1002.68396, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(2.94973636, 78.2667389, 1006.54535, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(2.94973636, 78.2667389, 1102.54541, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(2.11920166, 77.242363, 1108.8833, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(1.74295521, 77.242363, 1375.38599, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        CFrame.new(-14.5092411, 77.242363, 1408.6582, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+    },
+}
+
+local selectedPath = "+1 Wins"
+
+---------------------------------------------------------------------
+-- ⭐ DROPDOWN: SELECT WIN PATH
+---------------------------------------------------------------------
+SectionWins:Dropdown({
+    Name = "Select Win Path",
+    Options = {"+1 Wins", "+3 Wins", "+10 Wins", "+20 Wins", "+50 Wins"},
+    Default = "+1 Wins",
+    Callback = function(option)
+        selectedPath = option
+        Window:Notify({
+            Title = "TheCoolest Hub",
+            Description = "Selected: " .. option,
+            Lifetime = 3
+        })
+    end,
+})
+
+---------------------------------------------------------------------
+-- ⭐ AUTO-FARM WINS (MULTI-STEP TWEEN)
+---------------------------------------------------------------------
+local TweenService = game:GetService("TweenService")
+local runningFarm = false
+
+SectionWins:Toggle({
+    Name = "Auto-Farm Wins",
+    Default = false,
+    Callback = function(state)
+        runningFarm = state
+
+        Window:Notify({
+            Title = "TheCoolest Hub",
+            Description = state and "Auto-Farm Wins Enabled" or "Auto-Farm Wins Disabled",
+            Lifetime = 3
+        })
+
+        if not state then return end
+
+        task.spawn(function()
+            local player = game.Players.LocalPlayer
+
+            while runningFarm do
+                task.wait(0.3)
+
+                local char = player.Character
+                if not char then continue end
+
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then continue end
+
+                local path = TeleportPaths[selectedPath]
+                if not path then continue end
+
+                -- Loop door alle stappen in het pad
+                for _, targetCFrame in ipairs(path) do
+                    local tween = TweenService:Create(
+                        hrp,
+                        TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+                        {CFrame = targetCFrame}
+                    )
+                    tween:Play()
+                    tween.Completed:Wait()
+
+                    task.wait(0.1)
+                end
+            end
+        end)
+    end,
+})
