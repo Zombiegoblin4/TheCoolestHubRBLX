@@ -48,6 +48,12 @@ elseif placeId == 92728557730774 or universeId == 92728557730774 then
         "https://github.com/Zombiegoblin4/TheCoolestHubRBLX/raw/refs/heads/main/mobileGames/ithinkphonkissmth1.lua"
     )
     
+elseif placeId == 95082159892680 or universeId == 95082159892680 then
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/%2B1speedy.lua",
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/mobileGames/%2B1speedy.lua"
+    )
+    
 else
     --------------------------------------------------------------------
     -- Unsupported Game GUI (PC/Mobile)
