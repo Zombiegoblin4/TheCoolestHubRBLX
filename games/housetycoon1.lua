@@ -21,12 +21,22 @@ else
     warn("❌ Geen plot gevonden voor speler:", player.Name)
 end
 
+-- Randomized subtitle quotes
+local quotes = {
+    "Keep grinding! im sure you will get at the end someday and even faster with Cool Powers :p",
+    "oohhh you keep teleporting aye",
+    "Grinding HAHA 😂 i'd rather cheat",
+    "Keep letting those buttons teleport! let em do the work for ya"
+}
+
+-- Pick a random quote
+local randomSubtitle = quotes[math.random(1, #quotes)]
 
 local MacLib = loadstring(game:HttpGet("https://github.com/biggaboy212/Maclib/releases/latest/download/maclib.txt"))()
 
 local Window = MacLib:Window({
     Title = "TheCoolest Hub!",
-    Subtitle = "Ready To Be Cool 😎",
+    Subtitle = randomSubtitle,
     Size = UDim2.fromOffset(868, 650),
     DragStyle = 1,
     DisabledWindowControls = {},
