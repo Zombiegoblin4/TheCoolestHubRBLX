@@ -14,6 +14,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
 |  [🏠 House Tycoon](https://www.roblox.com/games/3571215756/House-Tycoon "🏠 House Tycoon") | 🟡 |
 |  [Needoh Tower](https://www.roblox.com/games/107645101488133/Needoh-Tower "Needoh Tower") | 🟢 |
 |  [Phonk Clicker!](https://www.roblox.com/games/92728557730774/Phonk-Clicker "Phonk Clicker!") | 🟢 |
+|  [+1 Speed Keyboard Escape Candy & Chocolate](https://www.roblox.com/games/95082159892680/1-Speed-Keyboard-Escape-Candy-Chocolate "+1 Speed Keyboard Escape Candy & Chocolate") | 🟢 |
 
 #### What Does this status mean?
 
