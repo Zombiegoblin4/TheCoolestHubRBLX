@@ -53,6 +53,12 @@ elseif placeId == 95082159892680 or universeId == 95082159892680 then
         "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/%2B1speedy.lua",
         "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/mobileGames/%2B1speedy.lua"
     )
+
+elseif placeId == 11674754725 or universeId == 11674754725 then
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/R6EHGui.lua",
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/R6EHGui.lua"
+    )
     
 else
     --------------------------------------------------------------------
