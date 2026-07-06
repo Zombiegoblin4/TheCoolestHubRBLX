@@ -22,3 +22,8 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
     🟡 = In Development 😏
     🟠 = Detected 😭
     🚨 = Not Working And Or Detected 💀
+
+
+#### Update log:
+
+    V0.1: First Pre-Release! 🥳
