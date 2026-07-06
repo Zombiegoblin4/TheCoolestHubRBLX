@@ -30,11 +30,6 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
     V0.2: added support for R6 Emote haven (A Custom Emote Gui!)
     V0.1: First Pre-Release! 🥳
 
-#### License
-    This project is licensed under the **MIT License**.  
-    You may use, modify, and distribute this software, but **you must retain the original copyright notice**.  
-    Selling this software or claiming ownership is **not allowed**.
-
 #### Contributions
     Contributions are always welcome.  
     If you want your game or script added to The Coolest Hub, feel free to open an issue or submit a pull request.
