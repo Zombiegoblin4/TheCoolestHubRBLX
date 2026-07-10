@@ -28,6 +28,8 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
 
 #### Update log:
 
+    V0.4: Better Sell Lemons Support
+    V0.3: Added Sell Lemons Support
     V0.2: added support for R6 Emote haven (A Custom Emote Gui!)
     V0.1: First Pre-Release! 🥳
 
