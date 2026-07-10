@@ -195,13 +195,17 @@ task.spawn(function()
 end)
 
 
--- // ===== Auto Buy — UI + fast loop =====
+-- // ===== Auto Buy — UI + fast loop (real-time attribute checks) =====
 local AutoBuyTabGroup = Window:TabGroup()
 local AutoBuyTab      = AutoBuyTabGroup:Tab({ Name = "Auto Buy" })
 local AutoBuySection  = AutoBuyTab:Section({ Side = "Left" })
 
 local autoBuyRunning = false
-local BUY_COOLDOWN   = 0.01   -- throttle between full passes (just a little faster)
+local BUY_COOLDOWN   = 0.01   -- throttle between full passes
+
+-- Weak table: once a button is Purchased, we blacklist it forever and never
+-- check its attributes again. Weak keys mean destroyed buttons get GC'd.
+local PurchasedBlacklist = setmetatable({}, { __mode = "k" })
 
 local autoBuyToggle  -- forward declare so the loop can read .State directly
 autoBuyToggle = AutoBuySection:Toggle({
@@ -222,12 +226,45 @@ autoBuyToggle = AutoBuySection:Toggle({
                     pcall(function()
                         local buttons = GetCachedButtons()
                         for _, entry in ipairs(buttons) do
+                            local btn      = entry.button
                             local purchase = entry.purchase
-                            if purchase and purchase.Parent then
-                                pcall(function()
-                                    purchase:InvokeServer(false)
-                                end)
+
+                            -- Skip destroyed buttons
+                            if not btn or not btn.Parent then continue end
+                            if not purchase or not purchase.Parent then continue end
+
+                            -- Skip blacklisted (already purchased) — O(1) lookup
+                            if PurchasedBlacklist[btn] then continue end
+
+                            -- Real-time attribute checks. We look at the button
+                            -- model root AND every descendant (Shown might live
+                            -- on the Purchase RF or a child Part).
+                            --   Purchased == true → blacklist & skip forever
+                            --   Shown == false    → skip (explicitly hidden)
+                            --   anything else     → BUY (permissive)
+                            local isPurchased = false
+                            local isHidden    = false
+
+                            if btn:GetAttribute("Purchased") == true then isPurchased = true end
+                            if btn:GetAttribute("Shown")    == false then isHidden    = true end
+
+                            if not isPurchased and not isHidden then
+                                for _, desc in ipairs(btn:GetDescendants()) do
+                                    if desc:GetAttribute("Purchased") == true then isPurchased = true break end
+                                    if desc:GetAttribute("Shown")    == false then isHidden    = true break end
+                                end
                             end
+
+                            if isPurchased then
+                                PurchasedBlacklist[btn] = true  -- never check again
+                                continue
+                            end
+                            if isHidden then continue end
+
+                            -- Not purchased AND not explicitly hidden — fire it!
+                            pcall(function()
+                                purchase:InvokeServer(false)
+                            end)
                         end
                     end)
                     task.wait(BUY_COOLDOWN)
@@ -379,11 +416,45 @@ local function GetTreeClickDetectors(tree)
     return detectors
 end
 
+-- Get the player's torso part (works for both R6 and R15)
+local function GetPlayerTorso()
+    local char = LocalPlayer.Character
+    if not char then return nil end
+    -- HumanoidRootPart exists in both R6 and R15 — use it as primary
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp then return hrp end
+    -- R6 fallback
+    local torso = char:FindFirstChild("Torso")
+    if torso then return torso end
+    -- R15 fallbacks
+    local upperTorso = char:FindFirstChild("UpperTorso")
+    if upperTorso then return upperTorso end
+    local lowerTorso = char:FindFirstChild("LowerTorso")
+    if lowerTorso then return lowerTorso end
+    return nil
+end
+
 local CollectTab        = AutoBuyTabGroup:Tab({ Name = "Auto Collect" })
 local CollectSection    = CollectTab:Section({ Side = "Left" })
 
+-- Lemon collect speed (seconds between collecting from each tree)
+local LemonCollectSpeed = 0.5
+
+-- Slider for the collect speed (lower = faster tree-to-tree, more epileptic)
+local lemonSpeedSlider
+lemonSpeedSlider = CollectSection:Slider({
+    Name = "Lemon Collect Speed",
+    Default = 0.5,
+    Minimum = 0.05,
+    Maximum = 3,
+    DisplayMethod = "Value",
+    Precision = 2,
+    Callback = function(value)
+        LemonCollectSpeed = value
+    end,
+}, "LemonCollectSpeed")
+
 local autoCollectLemonsRunning = false
-local LEMON_COLLECT_COOLDOWN   = 0.01
 
 local autoCollectLemonsToggle  -- forward declare
 autoCollectLemonsToggle = CollectSection:Toggle({
@@ -395,32 +466,53 @@ autoCollectLemonsToggle = CollectSection:Toggle({
             print("[AutoCollect/Lemons] Started.")
 
             task.spawn(function()
-                local cachedDetectors = nil
-                local lastRescan = 0
-
                 while autoCollectLemonsRunning and autoCollectLemonsToggle.State do
                     pcall(function()
-                        -- Rescan tree list every 2s (in case trees get added/removed)
-                        if not cachedDetectors or (tick() - lastRescan) > 2 then
-                            cachedDetectors = {}
-                            for _, tree in ipairs(FindAllLemonTrees()) do
-                                for _, det in ipairs(GetTreeClickDetectors(tree)) do
-                                    table.insert(cachedDetectors, det)
-                                end
-                            end
-                            lastRescan = tick()
-                        end
+                        local trees = FindAllLemonTrees()
+                        local torso = GetPlayerTorso()
+                        local originalCFrame = torso and torso.CFrame or nil
 
-                        -- Fire every detector (fireevent simulates a click)
-                        for _, det in ipairs(cachedDetectors) do
-                            if det and det.Parent then
+                        -- Process trees ONE AT A TIME: teleport → 0.5s settle → collect all fruit → next tree
+                        for _, tree in ipairs(trees) do
+                            if not (autoCollectLemonsRunning and autoCollectLemonsToggle.State) then break end
+
+                            local detectors = GetTreeClickDetectors(tree)
+                            if #detectors == 0 then continue end  -- no fruit on this tree, skip
+
+                            -- Teleport to the tree (use first detector's part as anchor)
+                            local anchorPart = detectors[1].Parent
+                            if torso and anchorPart and anchorPart:IsA("BasePart") then
                                 pcall(function()
-                                    fireclickdetector(det)
+                                    torso.CFrame = anchorPart.CFrame + Vector3.new(0, 3, 0)
                                 end)
                             end
+
+                            -- 0.5s settle delay (anti-epileptic)
+                            task.wait(0.5)
+                            if not (autoCollectLemonsRunning and autoCollectLemonsToggle.State) then break end
+
+                            -- Collect every fruit on this tree
+                            for _, det in ipairs(detectors) do
+                                if det and det.Parent then
+                                    pcall(function()
+                                        fireclickdetector(det)
+                                    end)
+                                end
+                            end
+
+                            -- Wait the user-configured speed before moving to the next tree
+                            task.wait(LemonCollectSpeed)
+                        end
+
+                        -- Restore original position after this full pass
+                        if torso and originalCFrame then
+                            pcall(function()
+                                torso.CFrame = originalCFrame
+                            end)
                         end
                     end)
-                    task.wait(LEMON_COLLECT_COOLDOWN)
+                    -- Small idle wait before next full tree pass
+                    task.wait(0.1)
                 end
                 autoCollectLemonsRunning = false
                 print("[AutoCollect/Lemons] Stopped.")
@@ -436,6 +528,7 @@ autoCollectLemonsToggle = CollectSection:Toggle({
 -- Cash drops live at: game.Workspace.CashDrops.CashDrop*.TouchInterest
 -- Each CashDrop model has a TouchInterest we fire to simulate walking over it.
 -- Rescan for new drops every 1 second.
+-- TELEPORT-BEFORE-COLLECT: teleport player torso to each drop before firing.
 
 local autoCollectCashRunning = false
 local CASH_RESCAN_INTERVAL   = 1.0
@@ -474,13 +567,31 @@ autoCollectCashToggle = CollectSection:Toggle({
                             lastRescan = tick()
                         end
 
-                        -- Fire every cached TouchInterest
+                        -- TELEPORT-BEFORE-COLLECT: teleport player torso to each
+                        -- cash drop's position before firing the touch interest.
+                        local torso = GetPlayerTorso()
+                        local originalCFrame = torso and torso.CFrame or nil
+
                         for _, interest in ipairs(cachedDrops) do
-                            if interest and interest.Parent then
+                            if interest and interest.Parent and interest.Parent:IsA("BasePart") then
+                                -- Teleport torso to the cash drop part
+                                if torso then
+                                    pcall(function()
+                                        torso.CFrame = interest.Parent.CFrame + Vector3.new(0, 3, 0)
+                                    end)
+                                    task.wait()  -- 1 frame so game registers position
+                                end
                                 pcall(function()
-                                    firetouchinterest(game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart"), interest.Parent, 0)
+                                    firetouchinterest(torso, interest.Parent, 0)
                                 end)
                             end
+                        end
+
+                        -- Restore original position after collecting all drops
+                        if torso and originalCFrame then
+                            pcall(function()
+                                torso.CFrame = originalCFrame
+                            end)
                         end
                     end)
                     task.wait(0.05)  -- fire-loop tick (drops don't need 100Hz)
