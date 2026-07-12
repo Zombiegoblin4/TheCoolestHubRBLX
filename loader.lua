@@ -65,7 +65,12 @@ elseif placeId == 79268393072444 or universeId == 79268393072444 then
         "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/LemonsAreNotSoYummy.lua",
         "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/mobileGames/LemonsSuck.lua"
     )
-    
+
+elseif placeId == 120766736586332 or universeId == 120766736586332 then
+    loadGame(
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/games/strongslop%2B1.lua",
+        "https://raw.githubusercontent.com/Zombiegoblin4/TheCoolestHubRBLX/refs/heads/main/mobileGames/sloppygame1.lua"
+    )
 else
     --------------------------------------------------------------------
     -- Unsupported Game GUI (PC/Mobile)
