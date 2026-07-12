@@ -143,11 +143,14 @@ end)
 Window:Section("Auto Buy")
 
 local autoBuyRunning = false
-local BUY_COOLDOWN   = 0.01
+local BUY_COOLDOWN   = 0.05   -- slightly slower to reduce spam
 
--- Weak table: once a button is Purchased, we blacklist it forever and never
--- check its attributes again. Weak keys mean destroyed buttons get GC'd.
+-- Weak table: once a button is Purchased, we blacklist it forever.
 local PurchasedBlacklist = setmetatable({}, { __mode = "k" })
+
+-- Per-button retry cooldown: prevents spamming the same button.
+local ButtonCooldowns = setmetatable({}, { __mode = "k" })
+local BUTTON_COOLDOWN_TIME = 3.0
 
 Window:Toggle("Auto Buy (Next) Button", { location = Table, flag = "AutoBuyNext" }, function()
     if Table["AutoBuyNext"] then
@@ -162,23 +165,21 @@ Window:Toggle("Auto Buy (Next) Button", { location = Table, flag = "AutoBuyNext"
             while autoBuyRunning and Table["AutoBuyNext"] do
                 pcall(function()
                     local buttons = GetCachedButtons()
+                    local now = tick()
+
                     for _, entry in ipairs(buttons) do
                         local btn      = entry.button
                         local purchase = entry.purchase
 
-                        -- Skip destroyed buttons
                         if not btn or not btn.Parent then continue end
                         if not purchase or not purchase.Parent then continue end
-
-                        -- Skip blacklisted (already purchased) — O(1) lookup
                         if PurchasedBlacklist[btn] then continue end
 
-                        -- Real-time attribute checks. We look at the button
-                        -- model root AND every descendant (Shown might live
-                        -- on the Purchase RF or a child Part).
-                        --   Purchased == true → blacklist & skip forever
-                        --   Shown == false    → skip (explicitly hidden)
-                        --   anything else     → BUY (permissive)
+                        -- Skip if on cooldown
+                        local readyAt = ButtonCooldowns[btn] or 0
+                        if now < readyAt then continue end
+
+                        -- Attribute checks
                         local isPurchased = false
                         local isHidden    = false
 
@@ -193,15 +194,16 @@ Window:Toggle("Auto Buy (Next) Button", { location = Table, flag = "AutoBuyNext"
                         end
 
                         if isPurchased then
-                            PurchasedBlacklist[btn] = true  -- never check again
+                            PurchasedBlacklist[btn] = true
                             continue
                         end
                         if isHidden then continue end
 
-                        -- Not purchased AND not explicitly hidden — fire it!
+                        -- Fire and set cooldown
                         pcall(function()
                             purchase:InvokeServer(false)
                         end)
+                        ButtonCooldowns[btn] = now + BUTTON_COOLDOWN_TIME
                     end
                 end)
                 task.wait(BUY_COOLDOWN)
@@ -215,27 +217,28 @@ Window:Toggle("Auto Buy (Next) Button", { location = Table, flag = "AutoBuyNext"
 end)
 
 
--- // ===== Auto Upgrade — scanner =====
--- Path: MyTycoon.Purchases["Lemon Stand"]["Lemon Stand"]["Lemon Stand"] → descendant named "Upgrade"
+-- // ===== Auto Upgrade — scanner (generic, works for any theme) =====
+-- Pattern: MyTycoon.Purchases.<Theme>.<Theme>.<Theme>.Upgrade
 local function ScanUpgradeButtons()
     local upgrades = {}
     if not MyTycoon then return upgrades end
 
-    local function findChild(parent, name)
-        if not parent then return nil end
-        return parent:FindFirstChild(name)
-    end
+    local purchases = MyTycoon:FindFirstChild("Purchases")
+    if not purchases then return upgrades end
 
-    local purchases   = MyTycoon:FindFirstChild("Purchases")
-    local lemonStand1 = findChild(purchases, "Lemon Stand")
-    local lemonStand2 = findChild(lemonStand1, "Lemon Stand")
-    local lemonStand3 = findChild(lemonStand2, "Lemon Stand")
-
-    if not lemonStand3 then return upgrades end
-
-    for _, desc in ipairs(lemonStand3:GetDescendants()) do
-        if desc.Name == "Upgrade" and (desc:IsA("RemoteFunction") or desc:IsA("RemoteEvent")) then
-            table.insert(upgrades, desc)
+    for _, theme1 in ipairs(purchases:GetChildren()) do
+        if theme1:IsA("Folder") or theme1:IsA("Model") then
+            local theme2 = theme1:FindFirstChild(theme1.Name)
+            if theme2 then
+                local theme3 = theme2:FindFirstChild(theme2.Name)
+                if theme3 then
+                    for _, desc in ipairs(theme3:GetDescendants()) do
+                        if desc.Name == "Upgrade" and (desc:IsA("RemoteFunction") or desc:IsA("RemoteEvent")) then
+                            table.insert(upgrades, desc)
+                        end
+                    end
+                end
+            end
         end
     end
 
@@ -490,6 +493,159 @@ Window:Toggle("Auto Collect Cash Drops", { location = Table, flag = "AutoCollect
         end)
     else
         autoCollectCashRunning = false
+    end
+end)
+
+
+-- // ===== Clicker — Income Streams =====
+-- Each toggle fires MyTycoon.Remotes.WakeIncomeStream:InvokeServer(streamName)
+Window:Section("Clicker")
+
+local INCOME_STREAMS = {
+    { label = "Lemon Trading",   name = "LemonTrading" },
+    { label = "Lemon Stand",     name = "LemonStand" },
+    { label = "Lemon Depot",     name = "LemonDepot" },
+    { label = "LemonX",          name = "LemonX" },
+    { label = "Lemon Republic",  name = "LemonRepublic" },
+}
+
+local CLICKER_COOLDOWN = 0.5
+local activeStreams = {}
+
+local function GetWakeIncomeStream()
+    if not MyTycoon then return nil end
+    local remotes = MyTycoon:FindFirstChild("Remotes")
+    if not remotes then return nil end
+    local remote = remotes:FindFirstChild("WakeIncomeStream")
+    if remote and remote:IsA("RemoteFunction") then return remote end
+    return nil
+end
+
+for _, stream in ipairs(INCOME_STREAMS) do
+    local streamName = stream.name
+    local streamLabel = stream.label
+
+    Window:Toggle(streamLabel, { location = Table, flag = "Clicker_" .. streamName }, function()
+        if Table["Clicker_" .. streamName] then
+            activeStreams[streamName] = true
+            print(string.format("[Clicker] %s started.", streamLabel))
+            task.spawn(function()
+                while activeStreams[streamName] and Table["Clicker_" .. streamName] do
+                    local remote = GetWakeIncomeStream()
+                    if remote then
+                        pcall(function()
+                            remote:InvokeServer(streamName)
+                        end)
+                    end
+                    task.wait(CLICKER_COOLDOWN)
+                end
+                activeStreams[streamName] = false
+                print(string.format("[Clicker] %s stopped.", streamLabel))
+            end)
+        else
+            activeStreams[streamName] = false
+        end
+    end)
+end
+
+-- "Fire All Streams" toggle
+local fireAllRunning = false
+Window:Toggle("Fire All Streams", { location = Table, flag = "Clicker_FireAll" }, function()
+    if Table["Clicker_FireAll"] then
+        fireAllRunning = true
+        print("[Clicker] Fire All started.")
+        task.spawn(function()
+            while fireAllRunning and Table["Clicker_FireAll"] do
+                local remote = GetWakeIncomeStream()
+                if remote then
+                    for _, stream in ipairs(INCOME_STREAMS) do
+                        pcall(function()
+                            remote:InvokeServer(stream.name)
+                        end)
+                    end
+                end
+                task.wait(CLICKER_COOLDOWN)
+            end
+            fireAllRunning = false
+            print("[Clicker] Fire All stopped.")
+        end)
+    else
+        fireAllRunning = false
+    end
+end)
+
+
+-- // ===== Phone Offers =====
+-- Listens for MyTycoon.Remotes.PhoneOffer.OnClientEvent firing with `true`.
+-- When it fires, waits 3 seconds, then calls PhoneOffer:FireServer("Accept").
+Window:Section("Phone Offers")
+
+local autoPhoneOffersRunning = false
+local phoneOfferConnection = nil
+
+Window:Toggle("Auto Accept Phone Offers", { location = Table, flag = "AutoPhoneOffers" }, function()
+    if Table["AutoPhoneOffers"] then
+        autoPhoneOffersRunning = true
+        print("[PhoneOffers] Started.")
+
+        task.spawn(function()
+            -- Keep trying to attach the listener
+            while autoPhoneOffersRunning and Table["AutoPhoneOffers"] do
+                if MyTycoon then
+                    local remotes = MyTycoon:FindFirstChild("Remotes")
+                    if remotes then
+                        local phoneOffer = remotes:FindFirstChild("PhoneOffer")
+                        if phoneOffer and phoneOffer:IsA("RemoteEvent") then
+                            if phoneOfferConnection then
+                                pcall(function() phoneOfferConnection:Disconnect() end)
+                            end
+                            phoneOfferConnection = phoneOffer.OnClientEvent:Connect(function(accepted)
+                                if not autoPhoneOffersRunning or not Table["AutoPhoneOffers"] then return end
+                                if accepted == true then
+                                    print("[PhoneOffers] Phone offer received! Waiting 3s before accepting...")
+                                    task.delay(3, function()
+                                        if not autoPhoneOffersRunning or not Table["AutoPhoneOffers"] then return end
+                                        if not MyTycoon then return end
+                                        local remotes2 = MyTycoon:FindFirstChild("Remotes")
+                                        if remotes2 then
+                                            local phoneOffer2 = remotes2:FindFirstChild("PhoneOffer")
+                                            if phoneOffer2 and phoneOffer2:IsA("RemoteEvent") then
+                                                pcall(function()
+                                                    phoneOffer2:FireServer("Accept")
+                                                end)
+                                                print("[PhoneOffers] Accept sent!")
+                                            end
+                                        end
+                                    end)
+                                end
+                            end)
+                            print("[PhoneOffers] Listening for phone offers on", phoneOffer:GetFullName())
+                            while autoPhoneOffersRunning and Table["AutoPhoneOffers"] do
+                                task.wait(0.5)
+                            end
+                            if phoneOfferConnection then
+                                pcall(function() phoneOfferConnection:Disconnect() end)
+                                phoneOfferConnection = nil
+                            end
+                            return
+                        end
+                    end
+                end
+                task.wait(1)
+            end
+            autoPhoneOffersRunning = false
+            if phoneOfferConnection then
+                pcall(function() phoneOfferConnection:Disconnect() end)
+                phoneOfferConnection = nil
+            end
+            print("[PhoneOffers] Stopped.")
+        end)
+    else
+        autoPhoneOffersRunning = false
+        if phoneOfferConnection then
+            pcall(function() phoneOfferConnection:Disconnect() end)
+            phoneOfferConnection = nil
+        end
     end
 end)
 
