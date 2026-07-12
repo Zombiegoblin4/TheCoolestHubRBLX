@@ -17,6 +17,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
 |  [+1 Speed Keyboard Escape Candy & Chocolate](https://www.roblox.com/games/95082159892680/1-Speed-Keyboard-Escape-Candy-Chocolate "+1 Speed Keyboard Escape Candy & Chocolate") | 🟢 |
 |  [R6 Emote Haven (RP)](https://www.roblox.com/games/11674754725/R6-Emote-Haven "R6 Emote Haven (RP)") | 🟢 |
 |  [Sell Lemons 🍋](https://www.roblox.com/games/79268393072444/Sell-Lemons "Sell Lemons 🍋") | 🟢 |
+|  [+1 Strength Per Click](https://www.roblox.com/games/120766736586332/1-Strength-Per-Click "+1 Strength Per Click") | 🟢 |
 
 #### What Does this status mean?
 
