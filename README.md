@@ -26,6 +26,13 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Zombiegoblin4/TheCool
     🟠 = Detected 😭
     🚨 = Not Working And Or Detected 💀
 
+### Views & Status
+| Site | Views |
+|------|-------|
+| [RobloxScripts.com](https://robloxscripts.com/script/thecoolest-hub-op-free-keyless) | 71 |
+| [RoScripts.io](https://roscripts.io/s/thecoolest-hub) | 11 |
+| [RoScripter.com](https://roscripter.com/scripts/thecoolest-hub) | 24 |
+| **Total** | **106** |
 
 #### Update log:
 
